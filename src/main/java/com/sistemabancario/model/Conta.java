@@ -1,5 +1,6 @@
 package com.sistemabancario.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -60,14 +61,13 @@ public class Conta implements Cadastro {
      * conta usando qualquer um dos construtores, a lista de movimentações não é
      * nula, chamando o método {@link #getMovimentacoes()}. (R04)
      */
-    private List<Movimentacao> movimentacoes;
+    private List<Movimentacao> movimentacoes = new ArrayList<>();
 
-    public Conta() {
-        // TODO: Você precisa implementar este método
-    }
+    public Conta() {}
 
-    public Conta(Agencia agencia, boolean especial, final double limite) {
-        // TODO: Você precisa implementar este método
+    public Conta(boolean especial, final double limite) {
+        this.especial = especial;
+        this.limite = limite;
     }
 
     /**
@@ -91,7 +91,12 @@ public class Conta implements Cadastro {
      * @param movimentacao {@link Movimentacao} a ser adicionada
      */
     public void addMovimentacao(Movimentacao movimentacao) {
-        // TODO: Você precisa implementar este método
+        if(movimentacao.isConfirmada()){
+            if(movimentacao.getTipo() == 'C')
+                saldo+=movimentacao.getValor();
+            else if(movimentacao.getTipo() == 'D')
+                saldo-=movimentacao.getValor();
+        }
     }
 
     /**
@@ -101,9 +106,8 @@ public class Conta implements Cadastro {
      * @return
      */
     public double getSaldoTotal() {
-        /* TODO: Você precisa implementar este método. 
-        A linha abaixo deve ser substituída pelo seu código */
-        return 0.0;
+        if (especial) return limite + saldo;
+        return saldo;
     }
 
     /**
@@ -124,7 +128,18 @@ public class Conta implements Cadastro {
      * @param valor valor a ser sacado (deve ser um valor positivo)
      */
     public void saque(final double valor) {
-        // TODO: Você precisa implementar este método
+        if(valor <= 0) {
+            throw new IllegalArgumentException("Valor para saque deve ser maior que zero!");
+        }
+        if (saldo < valor) {
+            throw new IllegalArgumentException("Saldo em conta é menor que valor para saque!");
+        }
+
+        Movimentacao movimentacao = new Movimentacao(this);
+        movimentacao.setTipo('D');
+        movimentacao.setValor(valor);
+        this.saldo -= valor;
+        movimentacoes.add(movimentacao);
     }
 
     /**
@@ -136,7 +151,15 @@ public class Conta implements Cadastro {
      * @param valor valor a ser depositado (deve ser um valor positivo)
      */
     public void depositoDinheiro(final double valor) {
-        // TODO: Você precisa implementar este método
+        if(valor <= 0) {
+            throw new IllegalArgumentException("O valor de depósito deve ser positivo.");
+        }
+
+        Movimentacao movimentacao = new Movimentacao(this);
+        movimentacao.setTipo('C');
+        movimentacao.setValor(valor);
+        this.saldo += valor;
+        movimentacoes.add(movimentacao);
     }
 
     /**
@@ -146,7 +169,13 @@ public class Conta implements Cadastro {
      * @param valor valor a ser depositado (deve ser um valor positivo)
      */
     public void depositoCheque(final double valor) {
-        // TODO: Você precisa implementar este método
+        if(valor <= 0) {
+            throw new IllegalArgumentException("O valor de depósito deve ser positivo.");
+        }
+
+        Movimentacao movimentacao = new Movimentacao(this);
+        movimentacao.setTipo('D');
+        movimentacoes.add(movimentacao);
     }
 
     @Override
